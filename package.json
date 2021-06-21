@@ -1,0 +1,17 @@
+{
+  "name": "graphsense-btc-ingester-cli",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "argparse": "^2.0.1",
+    "args": "^5.0.1",
+    "ora": "^5.4.1",
+    "redis": "^3.1.2"
+  }
+}

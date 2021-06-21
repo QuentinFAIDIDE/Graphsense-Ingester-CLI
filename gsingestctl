@@ -1,0 +1,29 @@
+#!/usr/bin/env node
+'use strict';
+ 
+const { ArgumentParser } = require('argparse');
+ 
+const { exec_range_ingestion } = require("./src/range-ingestion.js");
+
+// create main parser
+const parser = new ArgumentParser({
+  prog: "gsingestctl",
+  description: "CLI tool to assign tasks to graphsense ingester services"
+});
+ 
+// for all subcommands
+const subcommands = parser.add_subparsers({title:'subcommands',description:'subcommands', help:'different ways to assigns tasks to the services'});
+
+// create fill-range subtask
+const ingest_range = subcommands.add_parser("ingest_range",{help:"Send a raw ingesting job directly to the workers."});
+ingest_range.add_argument("-c", "--chain", { help: "Blockchain to use (btc, eth, ...)" , required:true });
+ingest_range.add_argument("-r", "--redis-host", { help: "Redis host that workers use.", default: "127.0.0.1"});
+ingest_range.add_argument("-p", "--port-redis", { help: "Redis port that workers use.", default: "6379" });
+ingest_range.add_argument("-s", "--start-block", { help: "The first block to be imported.", required:true });
+ingest_range.add_argument("-e", "--end-block", { help: "Redis port that workers use.", required:true  });
+ingest_range.add_argument("-b", "--block-size", { help: "The biggest batch you want to have in the range subdivision", default:"100"});
+ingest_range.add_argument("-k", "--keyspace", { help: "Cassandra raw keyspace to create/fill.", required:true  });
+ingest_range.set_defaults({func: exec_range_ingestion});
+ 
+// display the arguments parsed
+parser.parse_args().func(parser.parse_args());
