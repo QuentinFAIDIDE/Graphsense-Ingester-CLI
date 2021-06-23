@@ -117,7 +117,7 @@ function prepare_redis_client(host, port, currency, keyspace) {
             if(channel==currency.toUpperCase()+"::errors") {
                 console.error("\033[0;31mREPLICA ERROR\033[0m: "+message);
                 // if it's a job failing after it was marked as done (cassandra drivers ft. async - problems)
-                if(message.indexOf("job failed to execute: ")==-1 
+                if(message.indexOf("job failed to execute: ")==0 
                 && jobsStatusMap.hasOwnProperty(message.split("job failed to execute: ")[1])==true) {
                     if(jobsStatusMap[message.split("job failed to execute: ")[1]]=="done") {
                         // decrease the done counter 
@@ -156,20 +156,34 @@ function prepare_redis_client(host, port, currency, keyspace) {
 let previousDoneCount = 0;
 let previousPickedCount = 0;
 let previousErrorCount = 0;
-function monitor_jobs() {
+let startedPicking = false;
+function monitor_jobs(stopSpinner) {
     setInterval(()=>{
         if(jobsDoneCount!=previousDoneCount ||
            jobsErrorCount!=previousErrorCount ||
            jobsPickedCount!=previousPickedCount) {
+               if(startedPicking==false) {
+                    stopSpinner();
+                    startedPicking = true;
+               }
                previousPickedCount = jobsPickedCount;
                previousDoneCount = jobsDoneCount;
                previousErrorCount = jobsErrorCount;
-               console.log("\033[0;34m====== \033[0;35mJOBS UPDATE \033[0;34m======\033[0m:");
+               clearLastLines(4);
+               console.log("\033[0;34m====== \033[0;35mJOBS UPDATE \033[0;34m======\033[0m");
                console.log("\033[0;33mJobs Picked\033[0m: "+jobsPickedCount+" / "+jobsTotalCount);
                console.log("\033[0;33mJobs Finished\033[0m: "+jobsDoneCount+" / "+jobsTotalCount);
                console.log("\033[0;33mJobs Failed\033[0m: "+jobsErrorCount+" / "+jobsTotalCount);
+               if(jobsDoneCount+jobsErrorCount >= jobsTotalCount ) {
+                   process.exit(0);
+               }
            }
     }, 1000);
+}
+
+function clearLastLines(count)  {
+    process.stdout.moveCursor(0, -count)
+    process.stdout.clearScreenDown()
 }
 
 module.exports = { get_supported_chains, register_ingestion_job, prepare_redis_client, get_jobs_todo, push_jobs, monitor_jobs };

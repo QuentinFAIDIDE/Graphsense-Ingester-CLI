@@ -32,7 +32,7 @@ function exec_range_ingestion(args) {
     }
 
     const spinnerRedis = ora({
-        text:'Connecting to redis...',
+        text:'Connecting to redis',
         stream: process.stdout
     }).start();
     spinnerRedis.color = 'red';
@@ -45,7 +45,7 @@ function exec_range_ingestion(args) {
           spinnerRedis.succeed();
           const spinnerJob =
               ora({
-                text: "Fetching existing jobs in the todo list...",
+                text: "Fetching existing jobs in the todo list",
                 stream: process.stdout,
                 color: "yellow"
               }).start();
@@ -55,7 +55,7 @@ function exec_range_ingestion(args) {
               .then(() => {
                 spinnerJob.succeed();
                 const spinnerPush = ora({
-                                      text: "Pushing jobs...",
+                                      text: "Pushing jobs",
                                       stream: process.stdout,
                                       color: "yellow"
                                     }).start();
@@ -84,8 +84,14 @@ function exec_range_ingestion(args) {
                     .then(() => {
                       spinnerPush.succeed();
 
+                      const spinnerPickup = ora({
+                        text:'Waiting for job to be picked',
+                        stream: process.stdout
+                    }).start();
+                    spinnerPickup.color = 'yellow';
+
                       // now, monitor the job for success and failures
-                      monitor_jobs();
+                      monitor_jobs(()=>{spinnerPickup.succeed();});
                     })
                     .catch((err) => {
                       console.error(err);

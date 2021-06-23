@@ -4,6 +4,7 @@
 const { ArgumentParser } = require('argparse');
  
 const { exec_range_ingestion } = require("./src/range-ingestion.js");
+const { exec_list_keyspaces } = require("./src/list-keyspaces.js");
 
 // create main parser
 const parser = new ArgumentParser({
@@ -12,7 +13,7 @@ const parser = new ArgumentParser({
 });
  
 // for all subcommands
-const subcommands = parser.add_subparsers({title:'subcommands',description:'subcommands', help:'different ways to assigns tasks to the services'});
+const subcommands = parser.add_subparsers({});
 
 // create fill-range subtask
 const ingest_range = subcommands.add_parser("ingest_range",{help:"Send a raw ingesting job directly to the workers."});
@@ -24,6 +25,16 @@ ingest_range.add_argument("-e", "--end-block", { help: "Redis port that workers 
 ingest_range.add_argument("-b", "--block-size", { help: "The biggest batch you want to have in the range subdivision", default:"100"});
 ingest_range.add_argument("-k", "--keyspace", { help: "Cassandra raw keyspace to create/fill.", required:true  });
 ingest_range.set_defaults({func: exec_range_ingestion});
- 
+
+const list_keyspaces = subcommands.add_parser("list_keyspaces",{help:"List monitored keyspaces."});
+list_keyspaces.add_argument("-r", "--redis-host", { help: "Redis host that workers use.", default: "127.0.0.1"});
+list_keyspaces.add_argument("-p", "--port-redis", { help: "Redis port that workers use.", default: "6379" });
+list_keyspaces.set_defaults({func: exec_list_keyspaces});
+
 // display the arguments parsed
-parser.parse_args().func(parser.parse_args());
+let argsParsed = parser.parse_args();
+if(typeof argsParsed.func == 'function') {
+  argsParsed.func(argsParsed);
+} else {
+  console.log("Nothing to do");
+}
