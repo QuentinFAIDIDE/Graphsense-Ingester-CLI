@@ -117,13 +117,17 @@ function prepare_redis_client(host, port, currency, keyspace) {
             if(channel==currency.toUpperCase()+"::errors") {
                 console.error("\033[0;31mREPLICA ERROR\033[0m: "+message);
                 // if it's a job failing after it was marked as done (cassandra drivers ft. async - problems)
-                if(message.indexOf("job failed to execute: ")==0 
-                && jobsStatusMap.hasOwnProperty(message.split("job failed to execute: ")[1])==true) {
-                    if(jobsStatusMap[message.split("job failed to execute: ")[1]]=="done") {
-                        // decrease the done counter 
-                        jobsDoneCount--;
+                if(message.indexOf("job failed to execute: ")!=-1) {
+                    let jobelems = message.split("job failed to execute: ")[1].split("::");
+                    jobelems.splice(2,1);
+                    let jobname = jobelems.join("::");
+                    if(jobsStatusMap.hasOwnProperty(jobname)==true) {
+                        if(jobsStatusMap[jobname]=="done") {
+                            // decrease the done counter 
+                            jobsDoneCount--;
+                        }
+                        jobsErrorCount++;
                     }
-                    jobsErrorCount++;
                 }
             }
                 // monitor when our jobs get picked
