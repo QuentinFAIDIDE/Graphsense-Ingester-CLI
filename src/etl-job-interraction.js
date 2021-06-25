@@ -115,6 +115,7 @@ function prepare_redis_client(host, port, currency, keyspace) {
         subClient.on("message", (channel, message)=>{
             // redirect replicas errors to stdout
             if(channel==currency.toUpperCase()+"::errors") {
+                donotclean=true;
                 console.error("\033[0;31mREPLICA ERROR\033[0m: "+message);
                 // if it's a job failing after it was marked as done (cassandra drivers ft. async - problems)
                 if(message.indexOf("job failed to execute: ")!=-1) {
@@ -161,6 +162,7 @@ let previousDoneCount = 0;
 let previousPickedCount = 0;
 let previousErrorCount = 0;
 let startedPicking = false;
+let donotclean = false;
 function monitor_jobs(stopSpinner) {
     setInterval(()=>{
         if(jobsDoneCount!=previousDoneCount ||
@@ -173,7 +175,10 @@ function monitor_jobs(stopSpinner) {
                previousPickedCount = jobsPickedCount;
                previousDoneCount = jobsDoneCount;
                previousErrorCount = jobsErrorCount;
-               clearLastLines(4);
+               if(donotclean==true) {
+                   clearLastLines(4);
+                   donotclean=false;
+               }
                console.log("\033[0;34m====== \033[0;35mJOBS UPDATE \033[0;34m======\033[0m");
                console.log("\033[0;33mJobs Picked\033[0m: "+jobsPickedCount+" / "+jobsTotalCount);
                console.log("\033[0;33mJobs Finished\033[0m: "+jobsDoneCount+" / "+jobsTotalCount);
