@@ -38,10 +38,12 @@ function exec_list_keyspaces(args) {
         for(let i=0;i<chains.length;i++) {
             // get the sets with the keyspaces
             redisClient.smembers(""+chains[i].toUpperCase()+"::monitored-keyspaces", (errSME, resSME)=>{
+
                 if(errSME) {
                     console.error("Redis error:"+errSME);
                     process.exit(1);
                 }
+
                 
                 if(resSME==null || (Array.isArray(resSME)==true && resSME.length==0)) {
                     return;
@@ -69,9 +71,14 @@ function exec_list_keyspaces(args) {
                             resMUL[j].name+" \033[0m\n";
                         output += "\033[0;33mDelay\033[0m: "+ resMUL[j].delay+"\n";
                         output += "\033[0;33mLast block planned for update\033[0m: "+
-                            resMUL[j].lastWrittenBlock+"\n";
-                        output += "\033[0;33mFeeding from\033[0m: "+
-                            resMUL[j].feedFrom+"\n";
+                            resMUL[j].lastQueuedBlock+"\n";
+                        output += "\033[0;33mHighest block ready:\033[0m: "+
+                            resMUL[j].lastEnrichedBlock+"\n";
+                        if(resMUL[j].hasOwnProperty("broken")==true && resMUL[j].broken==true) {
+                            output += "\033[0;33mState:\033[0m: BROKEN\n";
+                        } else {
+                            output += "\033[0;33mState:\033[0m: HEALTHY\n";
+                        }
                     }
 
                     console.log(output);

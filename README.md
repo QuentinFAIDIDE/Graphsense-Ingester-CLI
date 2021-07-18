@@ -1,5 +1,5 @@
 # Graphsense Ingester CLI
-Command line interface to control the (unofficial) ingestion micro-services.
+Command line interface to control the ingestion micro-services.
 
 This software is still in early alpha, many features are still missing.
 
@@ -12,19 +12,5 @@ Install the nodejs packages.
 npm install
 ```
 
-## Ingest a range of blocks 
-```
-./gsingestctl ingest_range --chain BTC --start-block 300000 --end-block 300100 --redis-host myredishost --port-redis 6379 -k mykeyspace
-```
-
-Stopping the software with ctrl+c does not cancel the jobs for the keyspace yet. To cancel the jobs, stop the microservices and open a `redis-cli` shell to clear the job stacks:
-```
-DEL BTC::jobs::todo
-DEL BTC::jobs::doing
-```
-
-You can also clear the errors and finished jobs stack if you want (but it's not necessary if you're looking into stopping the service):
-```
-DEL BTC::jobs::errors
-DEL BTC::jobs::done
-```
+## Usage
+You can add keyspaces that will be monitored to generate ingesting jobs that will be picked by the microservices to fill blockchain data in cassandra according to the graphsense schemas. You can also monitor the advancement, remove a keyspace, or purge job queues.
