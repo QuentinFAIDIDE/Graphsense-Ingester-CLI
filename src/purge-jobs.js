@@ -7,11 +7,6 @@ function exec_purge_jobs(args) {
   let currency = args.chain;
   let keyspace = args.keyspace;
 
-  if(KEYSPACE_REGEXP.test(keyspace)==false) {
-      console.error("Invalid keyspace name format.");
-      process.exit(1);
-  }
-
   let multi = redisClient.multi();
   multi.del(currency.toUpperCase()+"::jobs::todo");
   multi.del(currency.toUpperCase()+"::jobs::doing");
