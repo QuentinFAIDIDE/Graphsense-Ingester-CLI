@@ -46,7 +46,7 @@ function exec_list_keyspaces(args) {
 
                 
                 if(resSME==null || (Array.isArray(resSME)==true && resSME.length==0)) {
-                    return;
+                    process.exit(1);
                 }
 
                 // get all the hash for each keyspace
