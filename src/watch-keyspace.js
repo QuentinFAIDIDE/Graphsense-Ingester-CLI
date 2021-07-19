@@ -184,7 +184,7 @@ function exec_watch_keyspace(args) {
       populateView(
           redisClient, currency, keyspace, screen, infos, todo, doing, done,
           errors);
-    }, 5000);
+    }, 2000);
 
     populateView(
         redisClient, currency, keyspace, screen, infos, todo, doing, done,

@@ -11,6 +11,10 @@ function exec_remove_keyspace(args) {
   multi.del(currency.toUpperCase()+"::monitored::"+keyspace);
   multi.srem(currency.toUpperCase()+"::monitored-keyspaces", keyspace);
 
+  // get block and tx count
+  multi.del(currency.toUpperCase() + '::' + keyspace + '::block-count');
+  multi.del(currency.toUpperCase() + '::' + keyspace + '::tx-count');
+
   multi.exec((errMU,resMU)=>{
     if(errMU) {
         console.error("Redis error:"+errMU);
