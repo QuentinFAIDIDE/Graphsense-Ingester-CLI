@@ -17,6 +17,7 @@ function exec_remove_keyspace(args) {
         process.exit(1);
     }
     console.log("All keyspaces with this name have been cleared from monitoring lists.");
+    process.exit(0);
   })
 }
 

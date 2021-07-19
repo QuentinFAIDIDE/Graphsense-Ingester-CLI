@@ -19,7 +19,8 @@ function exec_purge_jobs(args) {
         process.exit(1);
     }
     redisClient.publish(currency+"::purge", "purge");
-    console.log("Purge jobs from stacks.");
+    console.log("Purged jobs from stacks.");
+    process.exit(0);
   })
 }
 

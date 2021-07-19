@@ -24,6 +24,7 @@ function exec_add_keyspace(args) {
         process.exit(1);
     }
     console.log("Keyspace added.");
+    process.exit(0);
   })
 }
 
