@@ -19,10 +19,10 @@ function exec_list_keyspaces(args) {
     }).start();
     spinnerRedis.color = 'red';
 
-    let redisClient = redis.createClient({host: args.redis_host, port: args.redis_port});
+    let redisClient = redis.createClient({host: args.redis_host, port: args.port_redis});
 
     redisClient.on("error", (err)=>{
-        console.error("Unable to connect to redis at host "+args.redis_host+":"+args.redis_port);
+        console.error("Unable to connect to redis at host "+args.redis_host+":"+args.port_redis);
         process.exit(1);
     });
 
