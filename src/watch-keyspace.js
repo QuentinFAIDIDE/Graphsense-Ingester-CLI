@@ -270,11 +270,17 @@ function populateView(
     infos.clearItems();
 
     let status;
+    if(typeof resEx[4] == "undefined" || resEx[4]==null) {
+      console.log("Keyspace not found.");
+      process.exit(1);
+    }
+
     if(resEx[4].hasOwnProperty("broken")==true && resEx[4].broken==true) {
         status = "broken";
     } else {
         status = "healthy";
     }
+    
 
     infos.addItem('\033[0;32mKeyspace\033[0m: \033[0;31m' + keyspace + '\033[0m');
     infos.addItem('\033[0;32mKeyspace status\033[0m: \033[0;31m' + status + '\033[0m');
