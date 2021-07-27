@@ -63,7 +63,7 @@ function exec_watch_keyspace(args) {
     parent: screen,
     top: 0,
     height: 1,
-    left: 0,
+    left: 1,
     width: '33%',
     align: 'center',
     content: 'PENDING JOBS STACK'
@@ -73,13 +73,10 @@ function exec_watch_keyspace(args) {
 
   // doing stack
   var doing = blessed.listtable({
-
-
     top: 1,
     left: '33%',
     width: '33%',
     height: '50%-1',
-
     tags: true,
     mouse: true,
     interactive: true,
@@ -101,9 +98,9 @@ function exec_watch_keyspace(args) {
 
   var label_infos = blessed.text({
     parent: screen,
-    top: '50%+1',
+    top: "50%",
     height: 1,
-    left: '33%+1',
+    left: 1,
     width: '33%',
     content: 'KEYSPACE INFORMATIONS'
   });
