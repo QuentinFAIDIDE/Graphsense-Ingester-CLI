@@ -19,6 +19,9 @@ function exec_remove_keyspace(args) {
   multi.del(currency.toUpperCase()+"::filled-ranges::"+keyspace);
   multi.del(currency.toUpperCase()+"::enriched-ranges::"+keyspace);
 
+  // clear job tracker lists
+  multi.del(currency.toUpperCase()+"::jobs::posted::"+keyspace);
+
   multi.exec((errMU,resMU)=>{
     if(errMU) {
         console.error("Redis error:"+errMU);

@@ -51,7 +51,7 @@ function exec_watch_keyspace(args) {
     top: 1,
     left: 0,
     width: '33%-1',
-    height: '100%-1',
+    height: '50%-1',
     tags: true,
     mouse: true,
     interactive: true,
@@ -73,10 +73,13 @@ function exec_watch_keyspace(args) {
 
   // doing stack
   var doing = blessed.listtable({
-    top: '50%+1',
+
+
+    top: 1,
     left: '33%',
     width: '33%',
-    height: '50%',
+    height: '50%-1',
+
     tags: true,
     mouse: true,
     interactive: true,
@@ -86,7 +89,7 @@ function exec_watch_keyspace(args) {
   // the label for the box
   var label_doing = blessed.text({
     parent: screen,
-    top: '50%',
+    top: 0,
     align: 'center',
     height: 1,
     left: '33%+1',
@@ -98,7 +101,7 @@ function exec_watch_keyspace(args) {
 
   var label_infos = blessed.text({
     parent: screen,
-    top: 0,
+    top: '50%+1',
     height: 1,
     left: '33%+1',
     width: '33%',
@@ -106,8 +109,8 @@ function exec_watch_keyspace(args) {
   });
 
   var infos = blessed.listtable({
-    top: 1,
-    left: '33%',
+    top: '50%+1',
+    left: 0,
     width: '33%',
     height: '50%-1',
     tags: true,
@@ -147,9 +150,9 @@ function exec_watch_keyspace(args) {
   // error stack
   var errors = blessed.listtable({
     top: '50%+1',
-    left: '66%',
-    width: '33%',
-    height: '50%',
+    left: '33%',
+    width: '66%',
+    height: '50%-1',
     tags: true,
     mouse: true,
     interactive: true,
@@ -162,8 +165,8 @@ function exec_watch_keyspace(args) {
     top: '50%',
     align: 'center',
     height: 1,
-    left: '66%+1',
-    width: '33%',
+    left: '33%+1',
+    width: '66%',
     content: 'ERROR STREAM (SEE SERVICE LOGS FOR MORE)'
   });
   screen.append(errors);
@@ -184,7 +187,7 @@ function exec_watch_keyspace(args) {
       populateView(
           redisClient, currency, keyspace, screen, infos, todo, doing, done,
           errors);
-    }, 2000);
+    }, 500);
 
     populateView(
         redisClient, currency, keyspace, screen, infos, todo, doing, done,
