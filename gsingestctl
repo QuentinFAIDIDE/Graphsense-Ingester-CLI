@@ -1,60 +1,61 @@
 #!/usr/bin/env node
-'use strict';
- 
-const { ArgumentParser } = require('argparse');
-const { exec_list_keyspaces } = require("./src/list-keyspaces.js");
-const { exec_watch_keyspace } = require("./src/watch-keyspace.js");
-const { exec_add_keyspace } = require("./src/add-keyspace.js");
-const { exec_remove_keyspace } = require("./src/remove-keyspace.js");
-const { exec_purge_jobs } = require("./src/purge-jobs.js");
+"use strict";
+
+const {ArgumentParser} = require("argparse");
+const {exec_list_keyspaces} = require("./src/list-keyspaces.js");
+const {exec_watch_keyspace} = require("./src/watch-keyspace.js");
+const {exec_add_keyspace} = require("./src/add-keyspace.js");
+const {exec_remove_keyspace} = require("./src/remove-keyspace.js");
+const {exec_purge_jobs} = require("./src/purge-jobs.js");
 
 // create main parser
 const parser = new ArgumentParser({
-  prog: "gsingestctl",
-  description: "CLI tool to assign tasks to graphsense ingester services"
+    prog: "gsingestctl",
+    description: "CLI tool to assign tasks to graphsense ingester services",
 });
- 
+
 // for all subcommands
 const subcommands = parser.add_subparsers({});
 
-const list_keyspaces = subcommands.add_parser("list_keyspaces",{help:"List monitored keyspaces."});
-list_keyspaces.add_argument("-r", "--redis-host", { help: "Redis host that workers use.", default: "127.0.0.1"});
-list_keyspaces.add_argument("-p", "--port-redis", { help: "Redis port that workers use.", default: "6379" });
+const list_keyspaces = subcommands.add_parser("list_keyspaces", {help: "List monitored keyspaces."});
+list_keyspaces.add_argument("-r", "--redis-host", {help: "Redis host that workers use.", default: "127.0.0.1"});
+list_keyspaces.add_argument("-p", "--port-redis", {help: "Redis port that workers use.", default: "6379"});
 list_keyspaces.set_defaults({func: exec_list_keyspaces});
 
-const watch_keyspace = subcommands.add_parser("watch_keyspace",{help:"watch monitored keyspace."});
-watch_keyspace.add_argument("-r", "--redis-host", { help: "Redis host that workers use.", default: "127.0.0.1"});
-watch_keyspace.add_argument("-p", "--port-redis", { help: "Redis port that workers use.", default: "6379" });
-watch_keyspace.add_argument("-k", "--keyspace", { help: "Name of the keyspace to watch", required:true});
-watch_keyspace.add_argument("-c", "--chain", { help: "Symbol for the blockchain to feed (currently only BTC available).", default: "BTC"});
+const watch_keyspace = subcommands.add_parser("watch_keyspace", {help: "watch monitored keyspace."});
+watch_keyspace.add_argument("-r", "--redis-host", {help: "Redis host that workers use.", default: "127.0.0.1"});
+watch_keyspace.add_argument("-p", "--port-redis", {help: "Redis port that workers use.", default: "6379"});
+watch_keyspace.add_argument("-k", "--keyspace", {help: "Name of the keyspace to watch", required: true});
+watch_keyspace.add_argument("-c", "--chain", {help: "Symbol for the blockchain to feed (currently only BTC available).", default: "BTC"});
+watch_keyspace.add_argument("-s", "--save-logs", {help: "Save a file with detailed logs", action: "store_true"});
 watch_keyspace.set_defaults({func: exec_watch_keyspace});
 
-const add_keyspace = subcommands.add_parser("add_keyspace",{help:"add monitored keyspace."});
-add_keyspace.add_argument("-r", "--redis-host", { help: "Redis host that workers use.", default: "127.0.0.1"});
-add_keyspace.add_argument("-p", "--port-redis", { help: "Redis port that workers use.", default: "6379" });
-add_keyspace.add_argument("-k", "--keyspace", { help: "Name of the keyspace to watch", required:true});
-add_keyspace.add_argument("-c", "--chain", { help: "Symbol for the blockchain to feed (currently only BTC available).", default: "BTC"});
-add_keyspace.add_argument("-d", "--delay", { help: "Depth after which we consider ingesting a block.", default: "10"});
+const add_keyspace = subcommands.add_parser("add_keyspace", {help: "add monitored keyspace."});
+add_keyspace.add_argument("-r", "--redis-host", {help: "Redis host that workers use.", default: "127.0.0.1"});
+add_keyspace.add_argument("-p", "--port-redis", {help: "Redis port that workers use.", default: "6379"});
+add_keyspace.add_argument("-k", "--keyspace", {help: "Name of the keyspace to watch", required: true});
+add_keyspace.add_argument("-c", "--chain", {help: "Symbol for the blockchain to feed (currently only BTC available).", default: "BTC"});
+add_keyspace.add_argument("-d", "--delay", {help: "Depth after which we consider ingesting a block.", default: "10"});
 
 add_keyspace.set_defaults({func: exec_add_keyspace});
 
-const remove_keyspace = subcommands.add_parser("remove_keyspace",{help:"remove monitored keyspace."});
-remove_keyspace.add_argument("-r", "--redis-host", { help: "Redis host that workers use.", default: "127.0.0.1"});
-remove_keyspace.add_argument("-p", "--port-redis", { help: "Redis port that workers use.", default: "6379" });
-remove_keyspace.add_argument("-k", "--keyspace", { help: "Name of the keyspace to watch", required:true});
-remove_keyspace.add_argument("-c", "--chain", { help: "Symbol for the blockchain to feed (currently only BTC available).", default: "BTC"});
+const remove_keyspace = subcommands.add_parser("remove_keyspace", {help: "remove monitored keyspace."});
+remove_keyspace.add_argument("-r", "--redis-host", {help: "Redis host that workers use.", default: "127.0.0.1"});
+remove_keyspace.add_argument("-p", "--port-redis", {help: "Redis port that workers use.", default: "6379"});
+remove_keyspace.add_argument("-k", "--keyspace", {help: "Name of the keyspace to watch", required: true});
+remove_keyspace.add_argument("-c", "--chain", {help: "Symbol for the blockchain to feed (currently only BTC available).", default: "BTC"});
 remove_keyspace.set_defaults({func: exec_remove_keyspace});
 
-const purge_jobs = subcommands.add_parser("purge_jobs",{help:"Purge all job queues, DO NOT USE while any keyspace is being filled (will softlock ingesting)."});
-purge_jobs.add_argument("-r", "--redis-host", { help: "Redis host that workers use.", default: "127.0.0.1"});
-purge_jobs.add_argument("-p", "--port-redis", { help: "Redis port that workers use.", default: "6379" });
-purge_jobs.add_argument("-c", "--chain", { help: "Symbol for the blockchain to feed (currently only BTC available).", default: "BTC"});
+const purge_jobs = subcommands.add_parser("purge_jobs", {help: "Purge all job queues, DO NOT USE while any keyspace is being filled (will softlock ingesting)."});
+purge_jobs.add_argument("-r", "--redis-host", {help: "Redis host that workers use.", default: "127.0.0.1"});
+purge_jobs.add_argument("-p", "--port-redis", {help: "Redis port that workers use.", default: "6379"});
+purge_jobs.add_argument("-c", "--chain", {help: "Symbol for the blockchain to feed (currently only BTC available).", default: "BTC"});
 purge_jobs.set_defaults({func: exec_purge_jobs});
 
 // display the arguments parsed
-let argsParsed = parser.parse_args();
-if(typeof argsParsed.func == 'function') {
-  argsParsed.func(argsParsed);
+const argsParsed = parser.parse_args();
+if (typeof argsParsed.func == "function") {
+    argsParsed.func(argsParsed);
 } else {
-  console.log("Nothing to do");
+    console.log("Nothing to do");
 }

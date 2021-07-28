@@ -14,5 +14,9 @@
     "blessed": "^0.1.81",
     "ora": "^5.4.1",
     "redis": "^3.1.2"
+  },
+  "devDependencies": {
+    "eslint": "^7.31.0",
+    "eslint-config-google": "^0.14.0"
   }
 }

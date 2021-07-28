@@ -1,22 +1,22 @@
-const redis = require('redis');
-const { segments_overlap } = require('./utils.js');
+const redis = require("redis");
+const {segments_overlap} = require("./utils.js");
 
-var redisClient;
+let redisClient;
 
-var JOB_CHECK_INTERVAL = 5000;
+const JOB_CHECK_INTERVAL = 5000;
 let SYMBOL = null;
 let KEYSPACE = null;
-var MAX_DUPLICATE_LOOKAHEAD = 5000;
+const MAX_DUPLICATE_LOOKAHEAD = 5000;
 
-let jobStartedCallback = function () {};
+const jobStartedCallback = function() {};
 
 function get_supported_chains() {
     return ["btc"];
 }
 
-let jobsSent = [];
+const jobsSent = [];
 let jobsTodo = [];
-let jobsStatusMap = {};
+const jobsStatusMap = {};
 
 let jobsPickedCount = 0;
 let jobsErrorCount = 0;
@@ -27,20 +27,18 @@ let jobsTotalCount = 0;
 let initialJobsPush = null;
 
 function register_ingestion_job(currency, keyspace, start, end) {
-
     // build the job name
-    let jobname = keyspace+"::FILL_BLOCK_RANGE::"+start+","+end;
+    const jobname = keyspace+"::FILL_BLOCK_RANGE::"+start+","+end;
 
     // if this job is not already planned or another that is waiting for pickup
-    if(job_overlaps(start, end)==false ) {
-
+    if (job_overlaps(start, end)==false ) {
         initialJobsPush.lpush(currency.toUpperCase()+"::jobs::todo", jobname);
         // saving the job in an array
         // status will be: new - todo - doing - done - error
         jobsSent.push({
             name: jobname,
             start: start,
-            end: end
+            end: end,
         });
         jobsStatusMap[jobname] = "new";
         jobsTotalCount++;
@@ -56,7 +54,7 @@ function push_jobs() {
     return new Promise((resolve, reject)=>{
         initialJobsPush.exec((errMult, resMult)=>{
             // error management
-            if(errMult) {
+            if (errMult) {
                 reject(errMult);
                 return;
             }
@@ -67,10 +65,10 @@ function push_jobs() {
 
 function job_overlaps(start, end) {
     // for each job (filtered by our keyspace)
-    for(let i=0;i<jobsTodo.length;i++) {
-        // check if range overlaps
-        let range = jobsTodo[i].split("::")[2].split(",");
-        if(segments_overlap(start, end, Number(range[0], Number(range[1])))==true) {
+    for (let i=0; i<jobsTodo.length; i++) {
+    // check if range overlaps
+        const range = jobsTodo[i].split("::")[2].split(",");
+        if (segments_overlap(start, end, Number(range[0], Number(range[1])))==true) {
             return true;
         }
     }
@@ -82,15 +80,15 @@ function job_overlaps(start, end) {
 function get_jobs_todo(currency) {
     return new Promise((resolve, reject)=>{
         redisClient.lrange(currency.toUpperCase()+"::jobs::todo", 0, MAX_DUPLICATE_LOOKAHEAD, (errLR, resLR)=>{
-            if(errLR) {
+            if (errLR) {
                 reject("REDIS ERROR WHILE QUERYING TODO JOBS:"+errLR);
                 return;
             }
 
-            if(resLR==null) {
+            if (resLR==null) {
                 jobsTodo = [];
             } else {
-                jobsTodo = resLR.filter(job => job.startsWith(""+KEYSPACE+"::"));
+                jobsTodo = resLR.filter((job) => job.startsWith(""+KEYSPACE+"::"));
             }
             resolve();
         });
@@ -99,7 +97,7 @@ function get_jobs_todo(currency) {
 
 function prepare_redis_client(host, port, currency, keyspace) {
     return new Promise((resolve, reject)=>{
-        // create clients
+    // create clients
         redisClient = redis.createClient({host, port});
         subClient = redis.createClient({host, port});
         // kill everything in case of client errors
@@ -114,28 +112,28 @@ function prepare_redis_client(host, port, currency, keyspace) {
         // subscription to pub/subs callbacks
         subClient.on("message", (channel, message)=>{
             // redirect replicas errors to stdout
-            if(channel==currency.toUpperCase()+"::errors") {
+            if (channel==currency.toUpperCase()+"::errors") {
                 donotclean=true;
                 console.error("\033[0;31mREPLICA ERROR\033[0m: "+message);
                 // if it's a job failing after it was marked as done (cassandra drivers ft. async - problems)
-                if(message.indexOf("job failed to execute: ")!=-1) {
-                    let jobelems = message.split("job failed to execute: ")[1].split("::");
-                    jobelems.splice(2,1);
-                    let jobname = jobelems.join("::");
-                    if(jobsStatusMap.hasOwnProperty(jobname)==true) {
-                        if(jobsStatusMap[jobname]=="done") {
-                            // decrease the done counter 
+                if (message.indexOf("job failed to execute: ")!=-1) {
+                    const jobelems = message.split("job failed to execute: ")[1].split("::");
+                    jobelems.splice(2, 1);
+                    const jobname = jobelems.join("::");
+                    if (jobsStatusMap.hasOwnProperty(jobname)==true) {
+                        if (jobsStatusMap[jobname]=="done") {
+                            // decrease the done counter
                             jobsDoneCount--;
                         }
                         jobsErrorCount++;
                     }
                 }
             }
-                // monitor when our jobs get picked
+            // monitor when our jobs get picked
             else if (channel==currency.toUpperCase()+"::picked") {
-                if(jobsStatusMap.hasOwnProperty(message)==true) {
+                if (jobsStatusMap.hasOwnProperty(message)==true) {
                     // if the job has been recovered, do not increment counter
-                    if(jobsStatusMap[message]=="new") {
+                    if (jobsStatusMap[message]=="new") {
                         jobsPickedCount++;
                     }
                     jobsStatusMap[message]="picked";
@@ -165,34 +163,34 @@ let startedPicking = false;
 let donotclean = false;
 function monitor_jobs(stopSpinner) {
     setInterval(()=>{
-        if(jobsDoneCount!=previousDoneCount ||
+        if (jobsDoneCount!=previousDoneCount ||
            jobsErrorCount!=previousErrorCount ||
            jobsPickedCount!=previousPickedCount) {
-               if(startedPicking==false) {
-                    stopSpinner();
-                    startedPicking = true;
-               }
-               previousPickedCount = jobsPickedCount;
-               previousDoneCount = jobsDoneCount;
-               previousErrorCount = jobsErrorCount;
-               if(donotclean==true) {
-                   clearLastLines(4);
-                   donotclean=false;
-               }
-               console.log("\033[0;34m====== \033[0;35mJOBS UPDATE \033[0;34m======\033[0m");
-               console.log("\033[0;33mJobs Picked\033[0m: "+jobsPickedCount+" / "+jobsTotalCount);
-               console.log("\033[0;33mJobs Finished\033[0m: "+jobsDoneCount+" / "+jobsTotalCount);
-               console.log("\033[0;33mJobs Failed\033[0m: "+jobsErrorCount+" / "+jobsTotalCount);
-               if(jobsDoneCount+jobsErrorCount >= jobsTotalCount ) {
-                   process.exit(0);
-               }
-           }
+            if (startedPicking==false) {
+                stopSpinner();
+                startedPicking = true;
+            }
+            previousPickedCount = jobsPickedCount;
+            previousDoneCount = jobsDoneCount;
+            previousErrorCount = jobsErrorCount;
+            if (donotclean==true) {
+                clearLastLines(4);
+                donotclean=false;
+            }
+            console.log("\033[0;34m====== \033[0;35mJOBS UPDATE \033[0;34m======\033[0m");
+            console.log("\033[0;33mJobs Picked\033[0m: "+jobsPickedCount+" / "+jobsTotalCount);
+            console.log("\033[0;33mJobs Finished\033[0m: "+jobsDoneCount+" / "+jobsTotalCount);
+            console.log("\033[0;33mJobs Failed\033[0m: "+jobsErrorCount+" / "+jobsTotalCount);
+            if (jobsDoneCount+jobsErrorCount >= jobsTotalCount ) {
+                process.exit(0);
+            }
+        }
     }, 1000);
 }
 
-function clearLastLines(count)  {
-    process.stdout.moveCursor(0, -count)
-    process.stdout.clearScreenDown()
+function clearLastLines(count) {
+    process.stdout.moveCursor(0, -count);
+    process.stdout.clearScreenDown();
 }
 
-module.exports = { get_supported_chains, register_ingestion_job, prepare_redis_client, get_jobs_todo, push_jobs, monitor_jobs };
+module.exports = {get_supported_chains, register_ingestion_job, prepare_redis_client, get_jobs_todo, push_jobs, monitor_jobs};
