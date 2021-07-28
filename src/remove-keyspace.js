@@ -19,6 +19,9 @@ function exec_remove_keyspace(args) {
     multi.del(currency.toUpperCase()+"::filled-ranges::"+keyspace);
     multi.del(currency.toUpperCase()+"::enriched-ranges::"+keyspace);
 
+    // clear the counter for timed out jobs
+    repostMult.del(currency.toUpperCase()+"::"+keyspace+"::timedout-jobs");
+
     // clear job tracker lists
     multi.del(currency.toUpperCase()+"::jobs::posted::"+keyspace);
 
