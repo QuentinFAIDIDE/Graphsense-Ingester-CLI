@@ -22,10 +22,15 @@ function exec_watch_keyspace(args) {
     screen = blessed.screen({smartCSR: true});
 
     // initialize redis
-    const redisClient =
-      redis.createClient({host: args.redis_host, port: args.port_redis});
-    const subClient =
-      redis.createClient({host: args.redis_host, port: args.port_redis});
+    var redisClient, subClient;
+    if(args.redis_password=="") {
+        redisClient = redis.createClient({host: args.redis_host, port: args.port_redis});
+        subClient = redis.createClient({host: args.redis_host, port: args.port_redis});
+    } else {
+        redisClient = redis.createClient({host: args.redis_host, port: args.port_redis, password: args.redis_password});
+        subClient = redis.createClient({host: args.redis_host, port: args.port_redis, password: args.redis_password});
+    }
+
     const currency = args.chain;
     const keyspace = args.keyspace;
 
@@ -42,6 +47,7 @@ function exec_watch_keyspace(args) {
     });
     subClient.subscribe(currency.toUpperCase() + "::errors");
     subClient.subscribe(currency.toUpperCase() + "::metrics");
+    subClient.subscribe(currency.toUpperCase() + "::debug");
     subClient.on("message", (channel, message) => {
         if (channel == (currency.toUpperCase() + "::errors")) {
             append_trim_errors(message);
@@ -51,6 +57,10 @@ function exec_watch_keyspace(args) {
         } else if (channel == (currency.toUpperCase() + "::metrics")) {
             if (args.save_logs==true) {
                 logStream.write(""+Date.now()+" "+message+"\n");
+            }
+        } else if (channel == (currency.toUpperCase() + "::debug")) {
+            if (args.save_logs==true) {
+                logStream.write(message+"\n");
             }
         }
     });
@@ -296,7 +306,7 @@ function populateView(
             process.exit(1);
         }
 
-        if (resEx[4].hasOwnProperty("broken")==true && resEx[4].broken==true) {
+        if (resEx[4].hasOwnProperty("broken")==true && resEx[4].broken=="true") {
             status = "broken";
         } else {
             status = "healthy";

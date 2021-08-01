@@ -2,8 +2,12 @@ const redis = require("redis");
 
 function exec_remove_keyspace(args) {
     // initialize redis
-    const redisClient =
-      redis.createClient({host: args.redis_host, port: args.port_redis});
+    var redisClient;
+    if(args.redis_password=="") {
+        redisClient = redis.createClient({host: args.redis_host, port: args.port_redis});
+    } else {
+        redisClient = redis.createClient({host: args.redis_host, port: args.port_redis, password: args.redis_password});
+    }
     const currency = args.chain;
     const keyspace = args.keyspace;
 

@@ -18,7 +18,13 @@ function exec_list_keyspaces(args) {
     }).start();
     spinnerRedis.color = "red";
 
-    const redisClient = redis.createClient({host: args.redis_host, port: args.port_redis});
+    // initialize redis
+    var redisClient;
+    if(args.redis_password=="") {
+        redisClient = redis.createClient({host: args.redis_host, port: args.port_redis});
+    } else {
+        redisClient = redis.createClient({host: args.redis_host, port: args.port_redis, password: args.redis_password});
+    }
 
     redisClient.on("error", (err)=>{
         console.error("Unable to connect to redis at host "+args.redis_host+":"+args.port_redis);
